@@ -2,6 +2,7 @@ import { config } from "dotenv";
 import express from "express";
 import healthRouter from "./routers/health.router";
 import todoRouter from "./routers/todo.router";
+import categoryRouter from './routers/category.router';
 
 config();
 
@@ -12,6 +13,7 @@ export function buildApp() {
 
   app.use("/health", healthRouter);
   app.use("/todo", todoRouter);
+  app.use('/category', categoryRouter);
 
   // Ошибка 404
   app.use((req, res) => res.status(404).json({ message: "Not found" }));
