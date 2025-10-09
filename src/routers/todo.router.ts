@@ -4,12 +4,12 @@ import { createTodo, deleteTodo, getTodo, listTodo, toggleTodo, updateTodo } fro
 const router = Router();
 
 // Вывод всех TODO
-router.get("/", (req, res) => {
-  res.json({ list: listTodo() });
+router.get("/", async (req, res) => {
+  res.json({ list: await listTodo() });
 });
 
 // Создание TODO
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
 
   // Получаем нашу 
   const { title } = req.body;
@@ -26,12 +26,12 @@ router.post("/", (req, res) => {
     return res.status(400).json({ message: "Title cannot be empty" });
   }
 
-  const todo = createTodo(title.trim());
+  const todo = await createTodo(title.trim());
   return res.status(201).json({ todo });
 });
 
 // Выборка конкретного TODO
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
   // Получаем ID из url
   const { id } = req.params;
 
@@ -41,7 +41,7 @@ router.get("/:id", (req, res) => {
   }
 
   // Получаем нашу TODO запись
-  const todo = getTodo(Number(id));
+  const todo = await getTodo(Number(id));
 
   // Если TODO не найдено!
   if (!todo) {
@@ -53,7 +53,7 @@ router.get("/:id", (req, res) => {
 });
 
 // Обновление конкретного TODO по ID ()
-router.put("/:id", (req, res) => {
+router.put("/:id", async (req, res) => {
   // Получаем ID из url
   const { id } = req.params;
 
@@ -77,7 +77,7 @@ router.put("/:id", (req, res) => {
   }
 
   // Получаем нашу TODO запись
-  const todo = getTodo(Number(id));
+  const todo = await getTodo(Number(id));
 
   // Если TODO не найдено!
   if (!todo) {
@@ -85,13 +85,13 @@ router.put("/:id", (req, res) => {
   }
 
   // Обновляем нашу TODO запись
-  const updatedTodo = updateTodo(Number(id), req.body.title.trim());
+  const updatedTodo = await updateTodo(Number(id), req.body.title.trim());
 
   // Возвращаем рузультат поиска TODO
   return res.json({ todo: updatedTodo });
 });
 
-router.patch('/:id', (req, res) => {
+router.patch('/:id', async (req, res) => {
   // Получаем ID из url
   const { id } = req.params;
 
@@ -115,7 +115,7 @@ router.patch('/:id', (req, res) => {
   }
 
   // Получаем нашу TODO запись
-  const todo = getTodo(Number(id));
+  const todo = await getTodo(Number(id));
 
   // Если TODO не найдено!
   if (!todo) {
@@ -123,14 +123,14 @@ router.patch('/:id', (req, res) => {
   }
 
   // Обновляем нашу TODO запись
-  const updatedTodo = updateTodo(Number(id), req.body.title.trim());
+  const updatedTodo = await updateTodo(Number(id), req.body.title.trim());
 
   // Возвращаем рузультат поиска TODO
   return res.json({ todo: updatedTodo });
 });
 
 // Удаление конкретного TODO по ID
-router.delete("/:id", (req, res) => {
+router.delete("/:id", async (req, res) => {
   // Получаем ID из url
   const { id } = req.params;
 
@@ -140,7 +140,7 @@ router.delete("/:id", (req, res) => {
   }
 
   // Получаем нашу TODO запись
-  const todo = getTodo(Number(id));
+  const todo = await getTodo(Number(id));
 
   // Если TODO не найдено!
   if (!todo) {
@@ -148,13 +148,13 @@ router.delete("/:id", (req, res) => {
   }
 
   // Удаляем нашу TODO запись
-  const deleted = deleteTodo(Number(id));
+  const deleted = await deleteTodo(Number(id));
 
   // Возвращаем рузультат поиска TODO
   return res.json({ deleted });
 });
 
-router.get("/:id/toggle", (req, res) => {
+router.get("/:id/toggle", async (req, res) => {
   // Получаем ID из url
   const { id } = req.params;
 
@@ -164,7 +164,7 @@ router.get("/:id/toggle", (req, res) => {
   }
 
   // Получаем нашу TODO запись
-  const todo = getTodo(Number(id));
+  const todo = await getTodo(Number(id));
 
   // Если TODO не найдено!
   if (!todo) {
@@ -172,7 +172,7 @@ router.get("/:id/toggle", (req, res) => {
   }
 
   // Переключаем нашу TODO запись
-  const toggled = toggleTodo(Number(id));
+  const toggled = await toggleTodo(Number(id));
 
   // Возвращаем рузультат поиска TODO
   return res.json({ toggled });

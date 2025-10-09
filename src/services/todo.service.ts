@@ -1,3 +1,5 @@
+import { prisma } from "../db/prisma";
+
 // Интерфейс TODO
 export type Todo = {
   id: number;
@@ -5,41 +7,74 @@ export type Todo = {
   done: boolean;
 }
 
-let seq = 1; // Счетчик для генерации уникальных идентификаторов
-const store = new Map<Todo["id"], Todo>(); // Хранилище TODO
-
 /**
- * Возвращает массив из всех TODO в сторе.
+ * Возвращает массив из всех TODO в БД.
  *
  * @returns {Todo[]} Список TODO.
  */
-export function listTodo() {
-  return Array.from(store.values());
+export async function listTodo() {
+  const todos = await prisma.todo.findMany({
+    orderBy: {
+      id: "asc",
+    }
+  }) as Todo[];
+
+  return todos.map((todo) => ({
+    id: todo.id,
+    title: todo.title,
+    done: todo.done
+  }));
 }
 
 /**
- * Создает новый TODO с заданным title и добавляет его в хранилище.
+ * Создает новый TODO с заданным title и добавляет его в БД.
  *
  * @param {string} title - Заголовок TODO.
  * @returns {Todo} Новый TODO.
  */
-export function createTodo(title: Todo['title']) {
-  const todo = { id: seq++, title, done: false };
-  store.set(todo.id, todo);
-  return todo;
+export async function createTodo(title: Todo['title']) {
+  const todo = await prisma.todo.create({
+    data: {
+      title: title,
+    }
+  }) as Todo;
+
+  return {
+    id: todo.id,
+    title: todo.title,
+    done: todo.done
+  }
 }
 
 /**
  * Переключает TODO с заданным id в противоположное состояние.
  *
  * @param {Todo['id']} id - ID TODO.
- * @returns {Todo | undefined} TODO или undefined, если TODO не найден.
+ * @returns {Todo | null} TODO или null, если TODO не найден.
  */
-export function toggleTodo(id: Todo['id']) {
-  const todo = store.get(id);
-  if (!todo) return;
-  todo.done = !todo.done;
-  return todo;
+export async function toggleTodo(id: Todo['id']) {
+  const found = await prisma.todo.findUnique({
+    where: {
+      id: id
+    }
+  })
+
+  if (!found) return null;
+
+  const todo = await prisma.todo.update({
+    where: {
+      id: id
+    },
+    data: {
+      done: !found.done
+    }
+  }) as Todo;
+
+  return {
+    id: todo.id,
+    title: todo.title,
+    done: todo.done
+  }
 }
 
 /**
@@ -48,10 +83,26 @@ export function toggleTodo(id: Todo['id']) {
  * @param {Todo['id']} id - ID TODO.
  * @returns {boolean} true, если TODO был удален, false - в противном случае.
  */
-export function deleteTodo(id: Todo['id']) {
-  const todo = store.get(id);
-  store.delete(id);
-  return todo;
+export async function deleteTodo(id: Todo['id']) {
+  const found = await prisma.todo.findUnique({
+    where: {
+      id: id,
+    },
+  });
+
+  if (!found) return null;
+
+  await prisma.todo.delete({
+    where: {
+      id: id,
+    },
+  });
+
+  return {
+    id: found.id,
+    title: found.title,
+    done: found.done
+  }
 }
 
 /**
@@ -61,11 +112,29 @@ export function deleteTodo(id: Todo['id']) {
  * @param {Todo['title']} title - Новый заголовок TODO.
  * @returns {Todo | undefined} Обновленный TODO или undefined, если TODO не найден.
  */
-export function updateTodo(id: Todo['id'], title: Todo['title']) {
-  const todo = store.get(id);
-  if (!todo) return;
-  todo.title = title;
-  return todo;
+export async function updateTodo(id: Todo['id'], title: Todo['title']) {
+  const found = await prisma.todo.findUnique({
+    where: {
+      id: id,
+    },
+  });
+
+  if (!found) return null;
+
+  const todo = await prisma.todo.update({
+    where: {
+      id: id,
+    },
+    data: {
+      title: title
+    },
+  }) as Todo;
+
+  return {
+    id: todo.id,
+    title: todo.title,
+    done: todo.done,
+  };
 }
 
 /**
@@ -74,6 +143,18 @@ export function updateTodo(id: Todo['id'], title: Todo['title']) {
  * @param {Todo['id']} id - ID TODO.
  * @returns {Todo | undefined} TODO или undefined, если TODO не найден.
  */
-export function getTodo(id: Todo['id']) {
-  return store.get(id);
+export async function getTodo(id: Todo['id']) {
+  const found = await prisma.todo.findUnique({
+    where: {
+      id: id,
+    },
+  });
+
+  if (!found) return null;
+
+  return {
+    id: found.id,
+    title: found.title,
+    done: found.done
+  }
 }
