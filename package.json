@@ -6,7 +6,9 @@
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.json",
     "dev": "tsx watch src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
 
     "prisma": "prisma",
     "db:generate": "prisma generate",
