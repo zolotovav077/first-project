@@ -13,5 +13,5 @@
     "outDir": "dist",
     "sourceMap": true
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests", "swagger.ts"]
 }

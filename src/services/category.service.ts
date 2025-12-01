@@ -1,58 +1,47 @@
-import { getTodo, Todo } from "./todo.service";
+import { PrismaClient } from "@prisma/client";
 
-// Интерфейс Category
-export type HexColor = `#${string}`
-export type Category = {
-  id: number;
-  title: string;
-  color: HexColor
-};
+const prisma = new PrismaClient();
 
-let seq = 1; // Счетчик для генерации уникальных идентификаторов
-const store = new Map<Category['id'], Category>(); // Хранилище Category
-const storeTodoAndCategory = new Map<Category['id'], Todo['id'][]>();
+// Тип HEX-цвета прямо здесь
+export type HexColor = `#${string}`;
 
-export function createCategory(title: Category['title'], color: Category['color']): Category {
-  const category: Category = {
-    id: seq++,
-    title,
-    color
-  };
+// Создание категории
+export async function createCategory(title: string, color: HexColor) {
+  return prisma.category.create({
+    data: { title, color },
+  });
+}
 
-  store.set(category.id, category);
+// Получение всех категорий
+export async function listCategory() {
+  return prisma.category.findMany();
+}
+
+// Получение категории по ID
+export async function getCategory(id: number) {
+  return prisma.category.findUnique({ where: { id } });
+}
+
+// Добавление задач в категорию
+export async function addedTodoInCategory(categoryId: number, todosId: number[]) {
+  const updatedTodos = await Promise.all(
+    todosId.map(async (todoId) => {
+      return prisma.todo.update({
+        where: { id: todoId },
+        data: { categoryId },
+      });
+    })
+  );
+  return updatedTodos.map(t => t.id);
+}
+
+// Получение категории с задачами
+export async function getTodosInCategory(categoryId: number) {
+  const category = await prisma.category.findUnique({
+    where: { id: categoryId },
+    include: { todos: true },
+  });
+
+  if (!category) throw new Error("Category not found");
   return category;
-}
-export function listCategory(): Category[] {
-  return Array.from(store.values());
-}
-export function getCategory(id: Category['id']): Category | undefined {
-  return store.get(id);
-}
-
-export function addedTodoInCategory(idCategory: Category['id'], todosId: Todo['id'][]): Todo['id'][] {
-  const todos = todosId.map((id) => getTodo(id)?.id).filter(Boolean) as Todo['id'][];
-  const category = getCategory(idCategory);
-
-  if (category) {
-    storeTodoAndCategory.set(category.id, todos);
-  }
-
-  return todos;
-}
-
-export function getTodosInCategory(idCategory: Category['id']): Category & { todos: Todo[] } {
-  const category = getCategory(idCategory);
-
-  if (!category) {
-    throw new Error("Category not found");
-  }
-
-  const todos = storeTodoAndCategory.get(idCategory);
-
-  const todosEntity = ((todos || [])?.map((id) => getTodo(id)) || []) as Todo[];
-
-  return {
-    ...category,
-    todos: todosEntity,
-  };
 }
